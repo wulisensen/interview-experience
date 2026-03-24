@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .dice {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #333;
+      border-radius: 10%;
+      padding: 10px;
+      display: flex;                /* 开启 Flex 布局 */
+      justify-content: space-between;
+      background-color: #fff;
+    }
+
+    .item {
+      width: 20px;
+      height: 20px;
+      background-color: #333;
+      border-radius: 50%;
+    }
+
+    /* 核心：依次设置每个点的垂直位置 */
+    .item:nth-child(1) {
+      align-self: flex-start;
+    }
+
+    .item:nth-child(2) {
+      align-self: center;     
+    }
+
+    .item:nth-child(3) {
+      align-self: flex-end;  
+    }
+
+  </style>
+</head>
+<body>
+  <div class="dice">
+    <span class="item"></span>
+    <span class="item"></span>
+    <span class="item"></span>
+  </div>
+
+  <br><br><br>
+<style>
+    .outer{
+        width: 300px;
+        height: 300px;
+        border: 1px solid lightskyblue;
+        margin: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+    }
+
+    .box {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .column{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    ._item {
+        width: 50px;
+        height: 50px;
+        background: black;
+        border-radius: 50%;
+    }
+
+    ._item {
+        align-self: center;
+    }
+</style>
+  <div class="box outer">
+    <div class="column">
+        <div class="_item"></div>
+        <div class="_item"></div>
+    </div>
+    <div class="_item"></div>
+    <div class="column">
+        <div class="_item"></div>
+        <div class="_item"></div>
+    </div>
+  </div>
+</body>
+</html>
