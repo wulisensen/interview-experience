@@ -58,12 +58,12 @@ react hooks 不能在 if 条件 和 循环中调用，因为 react 会依赖 hoo
     );
   }
   ```
-  3、内置服务器组件（RSC）支持
-  4、简化Hooks: useMemo 和 useCallback 自动优化
-  5、其他
-    useContextSelector: 精准订阅context 中的部分数据，避免Context整体更新导致的不必要渲染
-    内置图片优化：<img> 标签原生支持 loading="lazy"、fetchpriority，配合 Suspense 实现图片加载状态统一管理；
-    错误边界增强：useErrorBoundary 替代类组件的 componentDidCatch，函数组件可直接捕获子组件错误：
+3、内置服务器组件（RSC）支持
+4、简化Hooks: useMemo 和 useCallback 自动优化
+5、其他
+  useContextSelector: 精准订阅context 中的部分数据，避免Context整体更新导致的不必要渲染
+  内置图片优化：<img> 标签原生支持 loading="lazy"、fetchpriority，配合 Suspense 实现图片加载状态统一管理；
+  错误边界增强：useErrorBoundary 替代类组件的 componentDidCatch，函数组件可直接捕获子组件错误：
 
 # 虚拟 dom diff 算法
 1、React Diff 算法的核心是「同层对比 + key 唯一标识 + 类型判断」，时间复杂度优化为 O (n)；
