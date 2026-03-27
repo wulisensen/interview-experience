@@ -28,3 +28,15 @@ JsBridge 异步回调需要用 callbackId 做关联：
   3、原生执行完业务逻辑，带着 callbackId 回调 JS；
   4、JS 根据 callbackId 找到对应的回调函数执行并销毁。
     这样可以保证多次异步调用不会混乱，是最通用稳定的通信方案
+
+# H5 下拉刷新
+通过监听 touch 事件实现：
+在页面顶部时，记录下拉距离，动态偏移内容区域；
+松手达到阈值后触发刷新接口，请求完成后回弹复位。
+# ios 禁用橡皮筋效果
+```css
+html, body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+```
