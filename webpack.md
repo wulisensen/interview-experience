@@ -204,3 +204,12 @@ JS 本身就是独立 chunk，用 chunkhash 能保证内容不变 hash 不变，
     (0, _esm__WEBPACK_IMPORTED_MODULE_0__['default'])(10, 5);
     (0, _esm__WEBPACK_IMPORTED_MODULE_0__.sum)(10, 5);
   ```
+
+# 如何优化 webpack 构建速度
+1、配置 alias、include/exclude 减少查找与编译范围
+2、开启 thread-loader 多线程
+3、开启 filesystem 缓存
+4、Dll 或 splitChunks 抽离第三方包
+5、开发环境关闭无用插件、优化 devtool
+6、开启热更新
+
