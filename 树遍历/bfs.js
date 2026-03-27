@@ -9,17 +9,18 @@ const tree = [
     ]}
   ]}
 ];
+
 function bfs(nodeList) {
-  if (!nodeList) return;
   const result = [];
-  const queue = [...nodeList];   // 队列
-  
+  if (!nodeList) return result;
+  const queue = [...nodeList];     // 队列
+
   while (queue.length) {
-    const node = queue.shift();   // 取队首
-    result.push(node);
+    const node = queue.shift();     // 取队首
+    result.push(node.name);
     // 子节点入队
     if (node.children) {
-      queue.push(...node.children)  
+      queue.push(...node.children);
     }
   }
   return result;
@@ -27,3 +28,5 @@ function bfs(nodeList) {
 
 console.log(bfs(tree))
 // 输出：['前端','html','css','vue','react','c++']
+
+// https://www.youtube.com/watch?v=tx4GiXVFqcM
