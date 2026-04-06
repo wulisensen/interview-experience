@@ -78,3 +78,8 @@ react hooks 不能在 if 条件 和 循环中调用，因为 react 会依赖 hoo
 4. 执行顺序：原生事件先执行，React 合成事件后执行。
 5. React 事件对象会被池化复用，异步访问需 persist。
 6. 阻止冒泡：React 只能阻止合成事件冒泡，不能阻止原生事件冒泡
+
+# Concurrent Mode
+React 16 Fiber 是架构重构，把递归渲染改成可拆分的 Fiber 任务，实现了可中断的调和机制，但默认还是同步渲染。
+React 18 Concurrent Mode 在 Fiber 基础上，真正开启了可中断、可调度、可插队的并发渲染，并提供 useTransition、自动批处理、优先级调度，让 UI 永远不卡顿。
+关系：Fiber 是能力基础，Concurrent 是实际启用的渲染模式。
