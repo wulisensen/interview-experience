@@ -10,11 +10,48 @@ const initialSchema = {
   title: '一个包含联动逻辑的表单',
   type: 'object',
   properties: {
+    name: {
+      type: 'string',
+      title: '姓名',
+      minLength: 2
+    },
+    email: {
+      type: 'string',
+      title: '邮箱',
+      format: 'email'
+    },
+    age: {
+      type: 'integer',
+      title: '年龄',
+      minimum: 0,
+      maximum: 120
+    },
+    gender: {
+      type: 'string',
+      title: '性别',
+      enum: ['男', '女', '其他'],
+      default: '男'
+    },
+    hobbies: {
+      type: 'array',
+      title: '兴趣爱好',
+      items: {
+        type: 'string',
+        enum: ['阅读', '运动', '音乐', '旅游', '编程', '摄影']
+      },
+      uniqueItems: true
+    },
+    bio: {
+      type: 'string',
+      title: '个人简介',
+      'ui:widget': 'textarea'
+    },
     isStudent: {
       type: 'boolean',
       title: '我是学生'
     }
   },
+  required: ['name', 'email'],
   dependencies: {
     isStudent: {
       oneOf: [
@@ -26,6 +63,15 @@ const initialSchema = {
             schoolName: {
               type: 'string',
               title: '学校名称'
+            },
+            major: {
+              type: 'string',
+              title: '专业'
+            },
+            graduationDate: {
+              type: 'string',
+              title: '毕业时间',
+              format: 'date'
             }
           },
           required: ['schoolName']
@@ -41,6 +87,12 @@ const initialValidationCode = `
 function customValidate(formData, errors) {
   if (formData.schoolName && formData.schoolName.length < 4) {
     errors.schoolName.addError('学校名称不能少于4个字符');
+  }
+  if (formData.age && formData.age < 18) {
+    errors.age.addError('年龄必须大于等于18岁');
+  }
+  if (formData.bio && formData.bio.length > 100) {
+    errors.bio.addError('个人简介不能超过100个字符');
   }
   return errors;
 }
