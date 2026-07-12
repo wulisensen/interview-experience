@@ -45,7 +45,7 @@ sessionsRouter.get('/:sessionId', async (c) => {
 
 sessionsRouter.post('/:sessionId/messages', async (c) => {
   const sessionId = c.req.param('sessionId');
-  const { message, schema } = await c.req.json();
+  const { userMessage, schema } = await c.req.json();
 
   const store = getSessionStore();
   const session = await store.get(sessionId);
@@ -82,17 +82,17 @@ sessionsRouter.post('/:sessionId/messages', async (c) => {
 
     const updatedHistory = [
       ...session.conversationHistory,
-      { role: 'user', content: message },
+      { role: 'user', content: userMessage },
       { 
         role: 'assistant', 
-        content: message, 
+        content: finalResult.content, 
         patches: finalResult.patches 
       }
     ];
 
     await store.update(sessionId, {
       conversationHistory: updatedHistory,
-      trace: [...session.trace, { message, result: finalResult }]
+      trace: [...session.trace, { userMessage, result: finalResult }]
     });
   });
 });

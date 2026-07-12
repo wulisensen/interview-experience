@@ -1,30 +1,60 @@
 import { JsonSchema, JsonPatch, PlatformAdapter, MessageEvent } from '../types/index.js';
+import dotenv from 'dotenv';
+dotenv.config();
 import { AgentTools, generateSchemaSkeleton } from './tools.js';
 import { Guardrail } from '../guardrail/index.js';
+
+interface DeepSeekCompletionResponse {
+  choices: Array<{
+    message: {
+      content: string;
+      role: string;
+    };
+    finish_reason: string;
+    index: number;
+  }>;
+  created: number;
+  id: string;
+  model: string;
+  object: string;
+  usage: {
+    completion_tokens: number;
+    prompt_tokens: number;
+    total_tokens: number;
+  };
+}
 
 const MAX_RETRIES = 3;
 
 async function callDeepSeekAPI(messages: Array<{ role: string; content: string }>) {
-  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer sk-1bf9509c560d48928415c26a85cc5115`
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000
-    })
-  });
+  console.error('DeepSeek API messages:', messages);
+  try {
+    
+    const response = await fetch('https://api.deepseek.com', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-v4-pro',
+        messages,
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    });
 
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
+    const data = await response.json() as DeepSeekCompletionResponse;
+    return data.choices[0].message.content;
+
+  } catch (error) {
+    console.error('DeepSeek API 调用失败:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
 }
 
 function extractJSON(content: string) {
