@@ -1,0 +1,31 @@
+{
+  "name": "@ai-config/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.0.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/openai": "^0.3.0",
+    "fast-json-patch": "^3.1.1",
+    "zod": "^3.22.0",
+    "ajv": "^8.12.0",
+    "hono": "^4.0.0",
+    "ioredis": "^5.3.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0",
+    "@types/uuid": "^10.0.0"
+  }
+}
