@@ -45,7 +45,7 @@ sessionsRouter.get('/:sessionId', async (c) => {
 
 sessionsRouter.post('/:sessionId/messages', async (c) => {
   const sessionId = c.req.param('sessionId');
-  const { userMessage, schema } = await c.req.json();
+  const { message: userMessage, schema } = await c.req.json();
 
   const store = getSessionStore();
   const session = await store.get(sessionId);

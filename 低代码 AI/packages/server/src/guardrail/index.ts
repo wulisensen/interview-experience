@@ -71,7 +71,7 @@ export class Guardrail {
     const l2Result = this.validateL2(patch, baseSchema);
     if (!l2Result.valid) return l2Result;
 
-    const l3Result = this.validateL3(applyPatch(baseSchema, patch).newDocument);
+    const l3Result = this.validateL3(applyJsonPatch(baseSchema, patch).newDocument);
     if (!l3Result.valid) return l3Result;
 
     return { valid: true, errors: [] };

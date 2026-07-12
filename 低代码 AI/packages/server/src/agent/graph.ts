@@ -3,6 +3,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { AgentTools, generateSchemaSkeleton } from './tools.js';
 import { Guardrail } from '../guardrail/index.js';
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY,
+});
 
 interface DeepSeekCompletionResponse {
   choices: Array<{
@@ -29,27 +35,17 @@ const MAX_RETRIES = 3;
 async function callDeepSeekAPI(messages: Array<{ role: string; content: string }>) {
   console.error('DeepSeek API messages:', messages);
   try {
-    
-    const response = await fetch('https://api.deepseek.com', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-v4-pro',
-        messages,
-        temperature: 0.7,
-        max_tokens: 2000
-      })
+    const completion = await openai.chat.completions.create({
+      messages: messages as any,
+      model: "deepseek-v4-pro",
+      // thinking: {"type": "enabled"}, // DeepSeek API doesn't fully support thinking block in this SDK yet for v4 unless specified
+      // reasoning_effort: "high",
+      stream: false,
     });
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
-    }
-
-    const data = await response.json() as DeepSeekCompletionResponse;
-    return data.choices[0].message.content;
+    
+    console.error('DeepSeek API completion:', JSON.stringify(completion));
+    console.log(completion)
+    return completion.choices[0].message.content || '';
 
   } catch (error) {
     console.error('DeepSeek API 调用失败:', error);
@@ -124,8 +120,8 @@ ${JSON.stringify(examples, null, 2)}` : ''}
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
           ]);
-          
           const schema = extractJSON(content);
+          console.log('Generated schema:', schema);
 
           const validationResult = guardrail.validateSchema(schema);
           if (validationResult.valid) {
@@ -152,20 +148,24 @@ ${examples.length > 0 ? `参考示例:
 ${JSON.stringify(examples, null, 2)}` : ''}
 
 要求:
-1. 只生成 JSON Patch 数组，不要其他文字
+1. 必须返回 JSON 数组格式（[]），即使只有一个操作也必须包裹在数组中。
 2. 使用 'add' 添加新字段
 3. 使用 'replace' 修改已有字段
 4. 使用 'add' 到 '/required/-' 添加必填字段
 5. 确保路径格式正确（如 '/properties/fieldName'）
 
-直接输出 JSON 格式的 Patch 数组，不要任何其他文字。`;
+直接输出 JSON 格式的 Patch 数组，必须以 [ 开始，以 ] 结束，不要任何其他文字。`;
 
           const content = await callDeepSeekAPI([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
           ]);
           
-          const patches = extractJSON(content);
+          let patches = extractJSON(content);
+          if (patches && !Array.isArray(patches)) {
+            patches = [patches];
+          }
+          console.log('Generated patches:', patches);
 
           const dryRunResult = tools.dryRunApply(currentSchema, patches);
           const validationResult = guardrail.validatePatch(patches, currentSchema);

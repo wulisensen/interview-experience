@@ -1,6 +1,11 @@
 import { JsonSchema, JsonPatch, PlatformAdapter, ComponentMeta } from '../types/index.js';
 
 function applyJsonPatch(doc: any, patch: JsonPatch): { newDocument: any } {
+    if (!Array.isArray(patch)) {
+    console.error('Error: patch is not an array. Received:', patch);
+    // Return original document if patch is invalid to prevent further errors
+    return { newDocument: doc };
+  }
   const result = JSON.parse(JSON.stringify(doc));
   for (const op of patch) {
     const pathParts = op.path.split('/').filter(Boolean);
