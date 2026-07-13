@@ -92,15 +92,17 @@ export async function createAgentProcessor(
     const skeleton = generateSchemaSkeleton(currentSchema);
     const isEmptySchema = !currentSchema.properties || Object.keys(currentSchema.properties).length === 0;
 
+    let previousErrors: string[] = [];
+
     for (let retry = 0; retry < MAX_RETRIES; retry++) {
       try {
         if (isEmptySchema) {
           // 生成新 schema
-          eventCallback({ type: 'thinking', data: { step: 'generating_schema' } });
+          eventCallback({ type: 'thinking', data: { step: 'generating_schema', attempt: retry + 1 } });
           
           const examples = tools.searchExamples(userMessage);
           
-          const systemPrompt = `你是一个专业的 JSON Schema 配置助手。请根据用户的需求，生成完整的 JSON Schema。
+          let systemPrompt = `你是一个专业的 JSON Schema 配置助手。请根据用户的需求，生成完整的 JSON Schema。
 
 平台协议规范:
 ${JSON.stringify(tools.getProtocolSpec(), null, 2)}
@@ -116,6 +118,10 @@ ${JSON.stringify(examples, null, 2)}` : ''}
 
 直接输出 JSON 格式的 Schema，不要有任何其他文字。`;
 
+          if (previousErrors.length > 0) {
+            systemPrompt += `\n\n【重要】上次生成的 Schema 存在以下验证错误，请在本次生成中修复它们：\n${previousErrors.join('\n')}`;
+          }
+
           const content = await callDeepSeekAPI([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
@@ -128,15 +134,16 @@ ${JSON.stringify(examples, null, 2)}` : ''}
             eventCallback({ type: 'schema', data: { schema } });
             return { success: true, schema };
           } else {
-            throw new Error(validationResult.errors.map((e: any) => e.message).join('; '));
+            const errorMessages = validationResult.errors.map((e: any) => `路径: ${e.path}, 错误: ${e.message} (代码: ${e.code})`);
+            throw new Error(JSON.stringify(errorMessages));
           }
         } else {
           // 修改现有 schema - 生成 patch
-          eventCallback({ type: 'thinking', data: { step: 'generating_patch' } });
+          eventCallback({ type: 'thinking', data: { step: 'generating_patch', attempt: retry + 1 } });
           
           const examples = tools.searchExamples(userMessage);
           
-          const systemPrompt = `你是一个专业的 JSON Schema 配置助手。请根据用户的需求，生成 RFC 6902 标准的 JSON Patch 来修改现有 Schema。
+          let systemPrompt = `你是一个专业的 JSON Schema 配置助手。请根据用户的需求，生成 RFC 6902 标准的 JSON Patch 来修改现有 Schema。
 
 当前 Schema 骨架:
 ${skeleton}
@@ -156,6 +163,10 @@ ${JSON.stringify(examples, null, 2)}` : ''}
 
 直接输出 JSON 格式的 Patch 数组，必须以 [ 开始，以 ] 结束，不要任何其他文字。`;
 
+          if (previousErrors.length > 0) {
+            systemPrompt += `\n\n【重要】上次生成的 Patch 存在以下验证错误，请在本次生成中修复它们：\n${previousErrors.join('\n')}`;
+          }
+
           const content = await callDeepSeekAPI([
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
@@ -174,14 +185,24 @@ ${JSON.stringify(examples, null, 2)}` : ''}
             eventCallback({ type: 'patch', data: { patches, dryRunResult } });
             return { success: true, patches };
           } else {
-            throw new Error(validationResult.errors.map((e: any) => e.message).join('; '));
+            const errorMessages = validationResult.errors.map((e: any) => `路径: ${e.path}, 错误: ${e.message} (代码: ${e.code})`);
+            throw new Error(JSON.stringify(errorMessages));
           }
         }
       } catch (error: any) {
         eventCallback({ type: 'thinking', data: { step: 'retrying', attempt: retry + 1 } });
+        
+        try {
+          // 尝试解析作为 JSON 字符串抛出的结构化错误
+          previousErrors = JSON.parse(error.message);
+        } catch {
+          // 如果解析失败（例如由于 extractJSON 失败抛出的普通错误），则直接使用错误信息
+          previousErrors = [error.message];
+        }
+
         if (retry === MAX_RETRIES - 1) {
-          eventCallback({ type: 'error', data: { message: error.message } });
-          return { success: false, error: error.message };
+          eventCallback({ type: 'error', data: { message: `多次尝试失败: ${previousErrors.join('; ')}` } });
+          return { success: false, error: previousErrors.join('; ') };
         }
       }
     }
